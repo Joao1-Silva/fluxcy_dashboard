@@ -8,7 +8,7 @@ Dashboard responsive con Next.js + Express BFF, login por roles y calculadora de
 - UI: TailwindCSS + componentes base estilo shadcn/ui + lucide-react
 - Charts: Recharts + KPIs/Gauges custom
 - Data layer: TanStack Query + Zustand
-- Backend: Node.js + Express + TypeScript (BFF)
+- Backend: Route Handlers de Next.js (modo integrado) + opcion Express BFF en `apps/server`
 - Realtime: Socket.IO server/client
 
 ## Instalacion
@@ -18,6 +18,16 @@ npm install
 ```
 
 ## Ejecucion local
+
+Modo integrado (sin backend separado):
+
+```bash
+npm run dev -w @fluxcy/web
+```
+
+- Web + API interna: `http://localhost:3001`
+
+Modo monorepo (web + Express BFF en paralelo):
 
 ```bash
 npm run dev
@@ -35,22 +45,20 @@ npm run start
 
 ## Deploy en Vercel (por Git)
 
-El frontend (`apps/web`) queda listo para deploy automatico en Vercel. Solo necesitas dejar configurada la URL publica del BFF.
+El proyecto puede desplegarse en **un solo proyecto de Vercel** (solo `apps/web`) sin backend separado.
 
 1. Importa el repo en Vercel.
 2. En el proyecto de Vercel, usa **Root Directory**: `apps/web`.
-3. Configura variable de entorno obligatoria:
-   - `BFF_URL=https://tu-bff-publico.example.com`
-4. Opcionales (si los necesitas):
-   - `NEXT_PUBLIC_BFF_URL=https://tu-bff-publico.example.com`
-   - `NEXT_PUBLIC_SOCKET_URL=https://tu-bff-publico.example.com`
-   - `NEXT_PUBLIC_ENABLE_TASKS_BACKEND=false`
+3. Deploy directo: no necesitas `BFF_URL` para el modo integrado.
+
+Opcionales:
+
+- `EXTERNAL_API_BASE_URL=http://api-sermaca.lat/api_aguilera/api` (si quieres sobrescribir la API externa de origen)
+- `NEXT_PUBLIC_ENABLE_TASKS_BACKEND=false`
+- `NEXT_PUBLIC_SOCKET_URL=https://tu-bff-publico.example.com` (solo si luego habilitas sockets desde un backend aparte)
+- `BFF_URL=https://tu-bff-publico.example.com` (solo si quieres usar un BFF externo por rewrites)
 
 Referencia de variables: [apps/web/.env.example](./apps/web/.env.example)
-
-El BFF debe estar desplegado y accesible por HTTPS en una URL publica.
-
-Nota: el build en Vercel falla de forma intencional si `BFF_URL` no esta configurada, para evitar deploys rotos apuntando a `localhost`.
 
 ## Login y roles
 
@@ -68,7 +76,7 @@ Modulo incluido en `/dashboard` para estimar produccion:
 - Formula de proyeccion: `((ivo_fin - ivo_inicio) / horas) * 24`
 - Neto: `proyeccion_24h - diluente - (proyeccion_24h * agua%)`
 
-## Endpoints BFF
+## Endpoints API
 
 - `GET /api/snapshot`
 - `GET /api/series/flow?from&to&smooth&alpha`

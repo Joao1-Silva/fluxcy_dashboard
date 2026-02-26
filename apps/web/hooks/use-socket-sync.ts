@@ -38,6 +38,12 @@ export function useSocketSync({ smoothFlow, alpha }: UseSocketSyncOptions) {
       return;
     }
 
+    if (!APP_CONFIG.socketUrl) {
+      setSocketStatus('error');
+      enableFallbackPolling('Socket no configurado en este despliegue. Fallback automatico a polling API.');
+      return;
+    }
+
     const socket = io(APP_CONFIG.socketUrl, {
       path: '/socket.io',
       transports: ['websocket', 'polling'],
