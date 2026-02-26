@@ -23,6 +23,21 @@ type DataTablePanelProps = {
   pageSize?: number;
 };
 
+function formatTableTime(value: string) {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) {
+    return '--';
+  }
+
+  return date.toLocaleString([], {
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+  });
+}
+
 export function DataTablePanel({
   title,
   rows,
@@ -57,13 +72,13 @@ export function DataTablePanel({
         {loading ? (
           <Skeleton className="h-56 w-full rounded-xl" />
         ) : (
-          <div className="max-h-64 overflow-auto rounded-xl border border-slate-700/60">
-            <table className="w-full min-w-[560px] text-sm">
+          <div className="-mx-1 max-h-72 overflow-auto rounded-xl border border-slate-700/60 px-1 sm:mx-0 sm:px-0">
+            <table className="w-full min-w-[460px] text-xs sm:min-w-[560px] sm:text-sm">
               <thead className="sticky top-0 z-10 bg-slate-900/95 text-xs uppercase tracking-wide text-slate-300">
                 <tr>
-                  <th className="px-3 py-2 text-left">Time</th>
+                  <th className="whitespace-nowrap px-3 py-2 text-left">Time</th>
                   {columns.map((column) => (
-                    <th key={column.key} className="px-3 py-2 text-left">
+                    <th key={column.key} className="whitespace-nowrap px-3 py-2 text-left">
                       {column.label}
                     </th>
                   ))}
@@ -72,9 +87,11 @@ export function DataTablePanel({
               <tbody>
                 {paginated.map((row, index) => (
                   <tr key={`${row.time}-${index}`} className="border-t border-slate-800/80 text-slate-200">
-                    <td className="px-3 py-2 text-xs text-slate-400">{new Date(row.time).toLocaleString()}</td>
+                    <td className="whitespace-nowrap px-3 py-2 text-xs text-slate-400">
+                      {formatTableTime(row.time)}
+                    </td>
                     {columns.map((column) => (
-                      <td key={`${row.time}-${column.key}`} className="px-3 py-2">
+                      <td key={`${row.time}-${column.key}`} className="whitespace-nowrap px-3 py-2">
                         {typeof row[column.key] === 'number'
                           ? `${formatNumeric(row[column.key] as number)}${column.unit ? ` ${column.unit}` : ''}`
                           : row[column.key] || '--'}
@@ -87,7 +104,7 @@ export function DataTablePanel({
           </div>
         )}
 
-        <div className="flex items-center justify-between text-xs text-slate-400">
+        <div className="flex flex-col gap-2 text-xs text-slate-400 sm:flex-row sm:items-center sm:justify-between">
           <span>
             Page {currentPage + 1} / {totalPages}
           </span>

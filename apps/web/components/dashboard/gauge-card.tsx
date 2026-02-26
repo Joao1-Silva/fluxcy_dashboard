@@ -22,8 +22,8 @@ export function GaugeCard({ label, min, max, value, unit }: GaugeCardProps) {
         <CardTitle className="text-xs uppercase tracking-wide text-slate-400">{label}</CardTitle>
         <Gauge className="h-4 w-4 text-sky-300/80" />
       </CardHeader>
-      <CardContent className="flex items-center gap-4">
-        <svg viewBox="0 0 100 100" className="h-24 w-24 shrink-0">
+      <CardContent className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-4">
+        <svg viewBox="0 0 100 100" className="h-20 w-20 shrink-0 sm:h-24 sm:w-24">
           <circle cx="50" cy="50" r="42" fill="none" stroke="rgba(71,85,105,0.35)" strokeWidth="8" />
           <circle
             cx="50"
@@ -37,9 +37,9 @@ export function GaugeCard({ label, min, max, value, unit }: GaugeCardProps) {
             transform="rotate(-90 50 50)"
           />
         </svg>
-        <div>
-          <div className="text-3xl font-semibold text-slate-100">
-            {formatNumeric(value)} {unit ? <span className="text-base text-slate-400">{unit}</span> : null}
+        <div className="min-w-0">
+          <div className="text-2xl font-semibold text-slate-100 sm:text-3xl">
+            {formatNumeric(value)} {unit ? <span className="text-sm text-slate-400 sm:text-base">{unit}</span> : null}
           </div>
           <p className="text-xs text-slate-400">
             Range: {min} - {max}

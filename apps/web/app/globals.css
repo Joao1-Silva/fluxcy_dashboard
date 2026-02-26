@@ -18,6 +18,11 @@
   border-color: hsl(var(--border) / 0.2);
 }
 
+html,
+body {
+  max-width: 100%;
+}
+
 body {
   font-family: var(--font-body), 'Segoe UI', sans-serif;
   background-color: hsl(var(--background));
@@ -27,6 +32,7 @@ body {
     radial-gradient(circle at 50% 85%, rgba(30, 64, 175, 0.22), transparent 42%),
     linear-gradient(160deg, rgba(2, 6, 23, 1) 0%, rgba(15, 23, 42, 1) 45%, rgba(3, 7, 18, 1) 100%);
   color: hsl(var(--foreground));
+  overflow-x: hidden;
 }
 
 h1,
@@ -53,6 +59,19 @@ h6 {
   border: 1px solid rgba(56, 189, 248, 0.4);
   background: rgba(2, 6, 23, 0.9);
   padding: 0.5rem 0.75rem;
+}
+
+body.panel-overlay-open {
+  overflow: hidden;
+}
+
+.chart-panel:fullscreen {
+  padding: 0.75rem;
+  background: rgba(2, 6, 23, 0.94);
+}
+
+.chart-panel:fullscreen [data-dashboard-card='true'] {
+  height: calc(100dvh - 1.5rem);
 }
 
 @media (max-width: 768px) {

@@ -49,7 +49,7 @@ function ToggleButton({
       variant={current === value ? 'default' : 'secondary'}
       size="sm"
       onClick={onClick}
-      className="min-w-24"
+      className="min-w-[5.25rem] flex-1 sm:flex-none"
     >
       {label}
     </Button>
@@ -95,15 +95,15 @@ export function DashboardHeader({
   const toInput = toDateTimeLocalInput(draftRange.to);
 
   return (
-    <header className="glass-panel mb-5 rounded-2xl p-4 lg:p-5">
+    <header className="glass-panel mb-5 rounded-2xl p-3 sm:p-4 lg:p-5">
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-        <div>
+        <div className="min-w-0">
           <h1 className="text-lg font-semibold tracking-wide text-slate-100 lg:text-xl">FLUXCY DEV V1</h1>
-          <p className="text-xs text-slate-400">
+          <p className="text-xs text-slate-400 sm:text-sm">
             Dashboard BFF / Socket.IO | Timezone: {timezone} | Theme: {themeMode}
           </p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto sm:justify-end">
           <Badge variant="muted" className="capitalize">
             {displayName} ({role})
           </Badge>
@@ -144,7 +144,7 @@ export function DashboardHeader({
             <Radio className="h-3.5 w-3.5" />
             Data Mode
           </Label>
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
             <ToggleButton
               current={mode}
               value="realtime"
@@ -188,7 +188,7 @@ export function DashboardHeader({
             <Palette className="h-3.5 w-3.5" />
             Theme
           </Label>
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
             <ToggleButton
               current={themeMode}
               value="Default"

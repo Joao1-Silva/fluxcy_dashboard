@@ -19,9 +19,9 @@ export function KpiCard({ label, value, unit, subtitle, emphasized = false }: Kp
         <TrendingUp className="h-4 w-4 text-sky-300/80" />
       </CardHeader>
       <CardContent>
-        <div className={emphasized ? 'text-4xl font-semibold' : 'text-3xl font-semibold'}>
+        <div className={emphasized ? 'text-3xl font-semibold sm:text-4xl' : 'text-2xl font-semibold sm:text-3xl'}>
           {formatNumeric(value)}
-          {unit ? <span className="ml-1 text-base font-medium text-slate-400">{unit}</span> : null}
+          {unit ? <span className="ml-1 text-sm font-medium text-slate-400 sm:text-base">{unit}</span> : null}
         </div>
         {subtitle ? <p className="text-xs text-slate-400">{subtitle}</p> : null}
       </CardContent>

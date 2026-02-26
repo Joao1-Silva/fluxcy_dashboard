@@ -107,6 +107,9 @@ Notas:
 - El tema se aplica mediante clase en `<body>` (`theme-default` o `theme-ios26`).
 - El modulo Health reutiliza las mismas fuentes de datos del hook `useDashboardData`.
 - No se modificaron rutas API (`/api/snapshot`, `/api/series/*`, `/api/table/*`).
+- Los paneles de series (`TimeSeriesPanel`) incluyen boton `Expandir` para pantalla completa.
+  Puedes salir con el mismo boton o con la tecla `Esc`.
+- Se ajusto responsive para movil vertical en header, KPIs, gauges y tablas.
 
 ### Embebido / A-B por viewport
 
