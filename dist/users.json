@@ -1,0 +1,31 @@
+﻿{
+  "users": [
+    {
+      "id": "u-admin",
+      "name": "Administrador Fluxcy",
+      "email": "admin@fluxcy.local",
+      "password": "Admin123*",
+      "role": "admin",
+      "token": "local-admin-token",
+      "active": true
+    },
+    {
+      "id": "u-operador",
+      "name": "Operador Campo",
+      "email": "operador@fluxcy.local",
+      "password": "Operador123*",
+      "role": "operator",
+      "token": "local-operator-token",
+      "active": true
+    },
+    {
+      "id": "u-visor",
+      "name": "Usuario Lectura",
+      "email": "viewer@fluxcy.local",
+      "password": "Viewer123*",
+      "role": "viewer",
+      "token": "local-viewer-token",
+      "active": true
+    }
+  ]
+}

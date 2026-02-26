@@ -1,0 +1,9 @@
+node_modules
+apps/*/node_modules
+apps/web/.next
+apps/server/dist
+coverage
+playwright-report
+test-results
+
+

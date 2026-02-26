@@ -1,0 +1,23 @@
+{
+  "name": "fluxcy-dashboard",
+  "private": true,
+  "version": "1.0.0",
+  "workspaces": [
+    "apps/web",
+    "apps/server"
+  ],
+  "scripts": {
+    "dev": "concurrently -n WEB,SERVER -c cyan,green \"npm run dev -w @fluxcy/web\" \"npm run dev -w @fluxcy/server\"",
+    "build": "npm run build -w @fluxcy/server && npm run build -w @fluxcy/web",
+    "start": "concurrently -n WEB,SERVER -c cyan,green \"npm run start -w @fluxcy/web\" \"npm run start -w @fluxcy/server\"",
+    "lint": "npm run lint -w @fluxcy/server && npm run lint -w @fluxcy/web",
+    "test": "npm run test -w @fluxcy/server && npm run test -w @fluxcy/web",
+    "format": "prettier --write ."
+  },
+  "devDependencies": {
+    "concurrently": "^9.2.1",
+    "prettier": "^3.6.2"
+  }
+}
+
+
