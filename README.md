@@ -107,6 +107,15 @@ npm run dev -w @fluxcy/server
 
 Base local: `http://localhost:4000`
 
+### Ventana emergente en dashboard (UI)
+
+Se agrego un boton `Asistente IA` en el header de:
+
+- `/dashboard`
+- `/dashboard/health`
+
+Al abrirlo, muestra un panel emergente con el analisis del agente para el rango **aplicado** del dashboard (`from/to` activos).
+
 ### Ejemplo `POST /assistant/analyze`
 
 ```bash

@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 
 import { StatusChip } from '@/components/layout/status-chip';
+import { AssistantAgentDialog } from '@/components/dashboard/assistant-agent-dialog';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -131,6 +132,7 @@ export function DashboardHeader({
               </Button>
             </>
           ) : null}
+          <AssistantAgentDialog />
           <Button variant="outline" size="sm" onClick={onLogout}>
             <LogOut className="mr-1.5 h-4 w-4" />
             Salir
