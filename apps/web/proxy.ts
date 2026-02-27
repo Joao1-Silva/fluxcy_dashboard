@@ -1,8 +1,13 @@
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
 
-const SESSION_COOKIE = 'fluxcy_session';
-const ROLE_COOKIE = 'fluxcy_role';
+import {
+  clearCookieOptions,
+  resolveAuthContextFromReaders,
+  ROLE_COOKIE_NAME,
+  SESSION_COOKIE_NAME,
+  WELLTECH_TRIAL_COOKIE_NAME,
+} from '@/lib/auth/server-auth';
 
 function isBypassedPath(pathname: string) {
   return (
@@ -15,21 +20,52 @@ function isBypassedPath(pathname: string) {
   );
 }
 
-export function proxy(request: NextRequest) {
+function isProtectedPath(pathname: string) {
+  return pathname.startsWith('/dashboard') || pathname.startsWith('/reports') || pathname.startsWith('/tasks');
+}
+
+function redirectExpired(request: NextRequest) {
+  const response = NextResponse.redirect(new URL('/login?expired=1', request.url));
+  response.cookies.set(SESSION_COOKIE_NAME, '', clearCookieOptions());
+  response.cookies.set(ROLE_COOKIE_NAME, '', clearCookieOptions());
+  response.cookies.set(WELLTECH_TRIAL_COOKIE_NAME, '', clearCookieOptions());
+  return response;
+}
+
+export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   if (isBypassedPath(pathname)) {
     return NextResponse.next();
   }
 
-  const hasSession = Boolean(request.cookies.get(SESSION_COOKIE)?.value);
-  if (!hasSession && pathname !== '/login') {
+  const auth = await resolveAuthContextFromReaders({
+    cookieReader: request.cookies,
+    headerReader: request.headers,
+  });
+
+  if (!auth.session && pathname !== '/login') {
     return NextResponse.redirect(new URL('/login', request.url));
   }
 
+  if (pathname === '/login') {
+    if (!auth.session) {
+      return NextResponse.next();
+    }
+
+    if (auth.role === 'welltech' && auth.trial?.expired) {
+      return redirectExpired(request);
+    }
+
+    return NextResponse.redirect(new URL('/dashboard', request.url));
+  }
+
+  if (auth.role === 'welltech' && isProtectedPath(pathname) && auth.trial?.expired) {
+    return redirectExpired(request);
+  }
+
   if (pathname.startsWith('/tasks')) {
-    const role = request.cookies.get(ROLE_COOKIE)?.value;
-    if (role !== 'superadmin') {
+    if (auth.role !== 'superadmin') {
       return NextResponse.redirect(new URL('/dashboard', request.url));
     }
   }

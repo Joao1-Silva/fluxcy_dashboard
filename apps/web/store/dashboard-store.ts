@@ -5,6 +5,7 @@ import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 
 import { buildRange, RANGE_PRESETS } from '@/lib/time';
+import type { ApiProfile } from '@/types/api-profile';
 import type { DashboardThemeMode, DataMode, SocketStatus, TimeRange } from '@/types/dashboard';
 
 type DashboardState = {
@@ -20,6 +21,7 @@ type DashboardState = {
   appliedRange: TimeRange;
   rangeVersion: number;
   banner: string | null;
+  apiProfileOverride: ApiProfile;
   setMode: (mode: DataMode) => void;
   setThemeMode: (themeMode: DashboardThemeMode) => void;
   setSocketStatus: (status: SocketStatus) => void;
@@ -32,6 +34,7 @@ type DashboardState = {
   setDraftRange: (range: TimeRange) => void;
   applyRange: () => void;
   setBanner: (message: string | null) => void;
+  setApiProfileOverride: (profile: ApiProfile) => void;
 };
 
 const initialRange = buildRange(subHours(new Date(), 1), new Date());
@@ -49,6 +52,7 @@ const defaultState = {
   appliedRange: initialRange,
   rangeVersion: 0,
   banner: null,
+  apiProfileOverride: 'DEFAULT' as ApiProfile,
 };
 
 export const useDashboardStore = create<DashboardState>()(
@@ -113,6 +117,7 @@ export const useDashboardStore = create<DashboardState>()(
         }));
       },
       setBanner: (banner) => set({ banner }),
+      setApiProfileOverride: (apiProfileOverride) => set({ apiProfileOverride }),
     }),
     {
       name: 'fluxcy-dashboard-store',
@@ -122,6 +127,7 @@ export const useDashboardStore = create<DashboardState>()(
         paused: state.paused,
         refreshMs: state.refreshMs,
         presetKey: state.presetKey,
+        apiProfileOverride: state.apiProfileOverride,
       }),
       storage: createJSONStorage(() => localStorage),
     },

@@ -1,8 +1,10 @@
 'use client';
 
+import { useEffect } from 'react';
 import Link from 'next/link';
 import {
   CalendarRange,
+  FileSpreadsheet,
   HeartPulse,
   LayoutDashboard,
   LogOut,
@@ -20,6 +22,10 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import {
+  getApiProfileOverrideFromBrowser,
+  setApiProfileOverrideInBrowser,
+} from '@/lib/api-profile';
 import { REFRESH_OPTIONS, RANGE_PRESETS, fromDateTimeLocalInput, toDateTimeLocalInput } from '@/lib/time';
 import { useDashboardStore } from '@/store/dashboard-store';
 import type { AuthRole } from '@/types/auth';
@@ -29,7 +35,7 @@ type DashboardHeaderProps = {
   canManageTasks: boolean;
   displayName: string;
   role: AuthRole;
-  onLogout: () => void;
+  onLogout: () => void | Promise<void>;
   moduleVariant?: 'default' | 'health';
 };
 
@@ -80,6 +86,25 @@ export function DashboardHeader({
   const setPresetKey = useDashboardStore((state) => state.setPresetKey);
   const setDraftRange = useDashboardStore((state) => state.setDraftRange);
   const applyRange = useDashboardStore((state) => state.applyRange);
+  const apiProfileOverride = useDashboardStore((state) => state.apiProfileOverride);
+  const setApiProfileOverride = useDashboardStore((state) => state.setApiProfileOverride);
+
+  useEffect(() => {
+    if (role === 'superadmin') {
+      setApiProfileOverride(getApiProfileOverrideFromBrowser());
+      return;
+    }
+
+    setApiProfileOverride('DEFAULT');
+  }, [role, setApiProfileOverride]);
+
+  useEffect(() => {
+    if (role !== 'superadmin') {
+      return;
+    }
+
+    setApiProfileOverrideInBrowser(apiProfileOverride);
+  }, [apiProfileOverride, role]);
 
   const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
 
@@ -121,8 +146,27 @@ export function DashboardHeader({
               Health
             </Link>
           </Button>
+          <Button variant="secondary" size="sm" asChild>
+            <Link href="/reports/corrida">
+              <FileSpreadsheet className="mr-1.5 h-4 w-4" />
+              Reportes
+            </Link>
+          </Button>
           {canManageTasks ? (
             <>
+              <div className="flex items-center gap-2 rounded-xl border border-slate-700/60 bg-slate-950/55 px-2 py-1.5">
+                <Label className="text-xs text-slate-300">Fuente</Label>
+                <select
+                  className="h-8 rounded-lg border border-slate-700/70 bg-slate-900/85 px-2 text-xs text-slate-100"
+                  value={apiProfileOverride}
+                  onChange={(event) =>
+                    setApiProfileOverride(event.target.value === 'WELLTECH' ? 'WELLTECH' : 'DEFAULT')
+                  }
+                >
+                  <option value="DEFAULT">Principal (Sermaca)</option>
+                  <option value="WELLTECH">WellTech (equipo 2)</option>
+                </select>
+              </div>
               <Button variant="secondary" size="sm" onClick={onOpenTasks}>
                 <SquareCheck className="mr-1.5 h-4 w-4" />
                 Tasks

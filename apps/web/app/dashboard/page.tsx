@@ -88,8 +88,8 @@ export default function DashboardPage() {
           canManageTasks={canManageTasks}
           displayName={user?.displayName ?? 'Usuario'}
           role={user?.role ?? 'supervisor'}
-          onLogout={() => {
-            logout();
+          onLogout={async () => {
+            await logout();
             router.replace('/login');
           }}
         />

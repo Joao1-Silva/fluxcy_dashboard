@@ -107,6 +107,11 @@ async function fetchWithFallback(
       },
     };
   } catch (firstError) {
+    const firstMessage = toErrorMessage(firstError);
+    if (firstMessage.includes('Finalizo su prueba')) {
+      throw new Error(firstMessage);
+    }
+
     if (!fallbackWithoutRange) {
       return {
         payload: [],
@@ -116,7 +121,7 @@ async function fetchWithFallback(
           fallback: false,
           latencyMs: Date.now() - start,
           rowCount: 0,
-          error: toErrorMessage(firstError),
+          error: firstMessage,
         },
       };
     }
@@ -138,6 +143,11 @@ async function fetchWithFallback(
         },
       };
     } catch (secondError) {
+      const secondMessage = toErrorMessage(secondError);
+      if (secondMessage.includes('Finalizo su prueba')) {
+        throw new Error(secondMessage);
+      }
+
       return {
         payload: [],
         meta: {
@@ -146,7 +156,7 @@ async function fetchWithFallback(
           fallback: true,
           latencyMs: Date.now() - start,
           rowCount: 0,
-          error: `${toErrorMessage(firstError)} | fallback: ${toErrorMessage(secondError)}`,
+          error: `${firstMessage} | fallback: ${secondMessage}`,
         },
       };
     }
@@ -205,7 +215,17 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  const executed = await runAnalyze(body);
+  let executed: AnalyzeRunResult;
+  try {
+    executed = await runAnalyze(body);
+  } catch (error) {
+    const message = toErrorMessage(error);
+    if (message.includes('Finalizo su prueba')) {
+      return NextResponse.json({ message }, { status: 403 });
+    }
+    return NextResponse.json({ message }, { status: 500 });
+  }
+
   if ('error' in executed) {
     const runError = executed.error;
     return NextResponse.json(runError.payload, { status: runError.status });
@@ -238,7 +258,17 @@ export async function GET(request: NextRequest) {
     );
   }
 
-  const executed = await runAnalyze(body);
+  let executed: AnalyzeRunResult;
+  try {
+    executed = await runAnalyze(body);
+  } catch (error) {
+    const message = toErrorMessage(error);
+    if (message.includes('Finalizo su prueba')) {
+      return NextResponse.json({ message }, { status: 403 });
+    }
+    return NextResponse.json({ message }, { status: 500 });
+  }
+
   if ('error' in executed) {
     const runError = executed.error;
     return NextResponse.json(runError.payload, { status: runError.status });

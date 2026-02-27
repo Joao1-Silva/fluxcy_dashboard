@@ -1,9 +1,12 @@
-export type AuthRole = 'superadmin' | 'supervisor';
+import type { ApiProfile } from '@/types/api-profile';
+
+export type AuthRole = 'superadmin' | 'supervisor' | 'welltech';
 
 export type AuthUser = {
   username: string;
   displayName: string;
   role: AuthRole;
+  apiProfile?: ApiProfile;
 };
 
 export type AuthLoginInput = {
@@ -11,7 +14,12 @@ export type AuthLoginInput = {
   password: string;
 };
 
-export type AuthLoginResult = {
-  ok: boolean;
-  message?: string;
-};
+export type AuthLoginResult =
+  | {
+      ok: true;
+    }
+  | {
+      ok: false;
+      message: string;
+      expired?: boolean;
+    };

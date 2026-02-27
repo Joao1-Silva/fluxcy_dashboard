@@ -35,6 +35,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json(normalizeSeries(payload, ['qm_liq', 'qm_gas']));
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Unexpected server error';
-    return NextResponse.json({ message }, { status: 500 });
+    const status = message.includes('Finalizo su prueba') ? 403 : 500;
+    return NextResponse.json({ message }, { status });
   }
 }

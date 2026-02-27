@@ -1,15 +1,8 @@
-const DEFAULT_EXTERNAL_API_BASE = 'http://api-sermaca.lat/api_aguilera/api';
+import { cookies, headers } from 'next/headers';
 
-function normalizeUrl(value: string | undefined) {
-  if (!value) {
-    return '';
-  }
-
-  const trimmed = value.trim();
-  return trimmed.endsWith('/') ? trimmed.slice(0, -1) : trimmed;
-}
-
-const EXTERNAL_API_BASE = normalizeUrl(process.env.EXTERNAL_API_BASE_URL) || DEFAULT_EXTERNAL_API_BASE;
+import type { ApiProfile } from '@/types/api-profile';
+import { getBaseUrl, withEquipoId } from '@/lib/api-profile';
+import { resolveAuthContextFromReaders } from '@/lib/auth/server-auth';
 
 function toQuery(params?: Record<string, string | number | undefined>) {
   if (!params) {
@@ -40,11 +33,44 @@ async function parseResponseBody(response: Response): Promise<unknown> {
   }
 }
 
+type ExternalRouting = {
+  profile: ApiProfile;
+};
+
+async function resolveExternalRouting(): Promise<ExternalRouting> {
+  try {
+    const [cookieStore, headerStore] = await Promise.all([cookies(), headers()]);
+    const auth = await resolveAuthContextFromReaders({
+      cookieReader: cookieStore,
+      headerReader: headerStore,
+    });
+
+    if (auth.role === 'welltech' && auth.trial?.expired) {
+      throw new Error('Finalizo su prueba. Contacte a FLUXCY para activar su licencia.');
+    }
+
+    return {
+      profile: auth.profile,
+    };
+  } catch (error) {
+    if (error instanceof Error && error.message.includes('Finalizo su prueba')) {
+      throw error;
+    }
+
+    return {
+      profile: 'DEFAULT',
+    };
+  }
+}
+
 export async function fetchExternal(
   endpoint: string,
   params?: Record<string, string | number | undefined>,
 ): Promise<unknown> {
-  const url = `${EXTERNAL_API_BASE}${endpoint}${toQuery(params)}`;
+  const routing = await resolveExternalRouting();
+  const baseUrl = getBaseUrl(routing.profile);
+  const resolvedParams = withEquipoId(routing.profile, params);
+  const url = `${baseUrl}${endpoint}${toQuery(resolvedParams)}`;
   const response = await fetch(url, {
     method: 'GET',
     cache: 'no-store',

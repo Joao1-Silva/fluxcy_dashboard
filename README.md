@@ -66,6 +66,44 @@ Usuarios base en archivo [usuarios_base.txt](./usuarios_base.txt).
 
 - `superadmin`: acceso completo (dashboard + tasks + calculadora IVO)
 - `supervisor`: acceso dashboard + calculadora IVO
+- `welltech`: acceso dashboard + reportes usando solo `api.fluxcy.xyz` con `equipo_id=2` (trial 16 dias)
+
+### Variables requeridas para WellTech
+
+Configurar en `apps/web/.env` (server-side):
+
+- `WELLTECH_USERNAME=welltech`
+- `WELLTECH_PASSWORD=welltech123`
+- `AUTH_SECRET=<secreto-largo>`
+- `WELLTECH_API_BASE_URL=http://api.fluxcy.xyz`
+- `TRIAL_FALLBACK_START=2026-02-27T11:00:00-04:00`
+
+### Trial WellTech (sin DB)
+
+- En el primer login exitoso de `welltech` se crea cookie firmada `wt_trial` (HttpOnly) con:
+  - `trialStart` en timezone `America/Caracas`
+  - `trialEnd = trialStart + 16 dias`
+- Si `wt_trial` no existe, se evalua fallback fijo con `TRIAL_FALLBACK_START`.
+- Si el trial expira:
+  - middleware bloquea rutas protegidas y redirige a `/login?expired=1`
+  - login de `welltech` queda bloqueado con mensaje de expiracion
+
+### Switch superadmin (fuente de datos)
+
+En el header del dashboard (solo superadmin) hay selector `Fuente`:
+
+- `Principal (Sermaca)` -> API actual (`api-sermaca.lat`)
+- `WellTech (equipo 2)` -> API nueva (`api.fluxcy.xyz` + `equipo_id=2`)
+
+La eleccion se guarda en `localStorage` y se envia a la API interna via `x-api-profile` / cookie de override.
+
+### Como probar expiracion rapido
+
+1. Login con `welltech` para crear `wt_trial`.
+2. Elimina cookie `wt_trial` desde DevTools (Application -> Cookies).
+3. Configura `TRIAL_FALLBACK_START` en una fecha pasada y reinicia `@fluxcy/web`.
+4. Navega a `/dashboard` o `/reports/corrida`.
+5. Debe redirigir a `/login?expired=1` y mostrar modal `Finalizo su prueba`.
 
 ## Calculadora IVO
 
@@ -78,6 +116,11 @@ Modulo incluido en `/dashboard` para estimar produccion:
 
 ## Endpoints API
 
+Las rutas internas de Next.js (`/api/*`) funcionan como proxy/router de datos:
+
+- Perfil `DEFAULT` -> `http://api-sermaca.lat/api_aguilera/api` (sin `equipo_id`)
+- Perfil `WELLTECH` -> `http://api.fluxcy.xyz/fluxcy/api` (inyecta `equipo_id=2`)
+
 - `GET /api/snapshot`
 - `GET /api/series/flow?from&to&smooth&alpha`
 - `GET /api/series/vp?from&to`
@@ -88,6 +131,34 @@ Modulo incluido en `/dashboard` para estimar produccion:
 - `GET /api/table/bsw-lab?from&to&limit`
 - `GET /api/table/densidad-lab?from&to&limit`
 - `GET /api/tasks` (deshabilitado por defecto en codigo)
+- `POST /api/reports/generate` (genera Excel de Corrida VDF)
+
+## Reporte Excel Corrida VDF
+
+### Ruta UI
+
+- `http://localhost:3001/reports/corrida`
+
+### Requisitos
+
+- Plantilla en `apps/web/public/templates/FORMATO_DE_REPORTE_FLUXCY_VDF.xlsx`
+- Inputs obligatorios al generar: `fileName`, `pozo`, `macolla`
+- Rango maximo permitido: `12h` (UI sugiere paso de `20 min`)
+
+### Ejecucion local
+
+```bash
+npm run dev -w @fluxcy/web
+```
+
+### Ejemplo curl (descarga .xlsx)
+
+```bash
+curl -X POST "http://localhost:3001/api/reports/generate" ^
+  -H "Content-Type: application/json" ^
+  --output "Reporte_FLUXCY_H1B_P01_2026-02-27.xlsx" ^
+  -d "{\n    \"fechaInicio\":\"2026-02-27T00:00:00\",\n    \"fechaFin\":\"2026-02-27T06:00:00\",\n    \"pozo\":\"H1B P01\",\n    \"macolla\":\"H1B\",\n    \"fileName\":\"Reporte_FLUXCY_H1B_P01_2026-02-27\"\n  }"
+```
 
 ## Asistente Virtual Local (Stateless, additive)
 
