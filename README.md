@@ -97,6 +97,20 @@ En el header del dashboard (solo superadmin) hay selector `Fuente`:
 
 La eleccion se guarda en `localStorage` y se envia a la API interna via `x-api-profile` / cookie de override.
 
+### Modal de trial WellTech (solo superadmin)
+
+Se agrego boton `Trial WellTech` en el header del dashboard para superadmin. Muestra:
+
+- estado del trial (activo/expirado),
+- tiempo restante (dias/horas),
+- fecha inicio y fin,
+- fuente del conteo (`Primer login` o `Fallback fijo`).
+
+Para compartir estado de trial entre sesiones sin DB se usa archivo local:
+
+- `apps/web/.runtime/welltech-trial-state.json` (ruta por defecto)
+- Opcional override: `WELLTECH_TRIAL_STATE_FILE=<ruta_absoluta>`
+
 ### Como probar expiracion rapido
 
 1. Login con `welltech` para crear `wt_trial`.

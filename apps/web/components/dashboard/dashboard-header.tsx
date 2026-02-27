@@ -1,8 +1,9 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import {
+  Clock3,
   CalendarRange,
   FileSpreadsheet,
   HeartPulse,
@@ -37,6 +38,16 @@ type DashboardHeaderProps = {
   role: AuthRole;
   onLogout: () => void | Promise<void>;
   moduleVariant?: 'default' | 'health';
+};
+
+type WelltechTrialStatus = {
+  source: 'first_login' | 'fallback';
+  trialStart: string;
+  trialEnd: string;
+  expired: boolean;
+  remainingMs: number;
+  remainingDays: number;
+  remainingHours: number;
 };
 
 function ToggleButton({
@@ -88,6 +99,10 @@ export function DashboardHeader({
   const applyRange = useDashboardStore((state) => state.applyRange);
   const apiProfileOverride = useDashboardStore((state) => state.apiProfileOverride);
   const setApiProfileOverride = useDashboardStore((state) => state.setApiProfileOverride);
+  const [welltechTrialModalOpen, setWelltechTrialModalOpen] = useState(false);
+  const [welltechTrialLoading, setWelltechTrialLoading] = useState(false);
+  const [welltechTrialError, setWelltechTrialError] = useState<string | null>(null);
+  const [welltechTrialStatus, setWelltechTrialStatus] = useState<WelltechTrialStatus | null>(null);
 
   useEffect(() => {
     if (role === 'superadmin') {
@@ -105,6 +120,33 @@ export function DashboardHeader({
 
     setApiProfileOverrideInBrowser(apiProfileOverride);
   }, [apiProfileOverride, role]);
+
+  const loadWelltechTrialStatus = async () => {
+    setWelltechTrialLoading(true);
+    setWelltechTrialError(null);
+    try {
+      const response = await fetch('/api/admin/welltech-trial', {
+        method: 'GET',
+        cache: 'no-store',
+      });
+      const payload = (await response.json().catch(() => null)) as WelltechTrialStatus | { message?: string } | null;
+
+      if (!response.ok) {
+        const message =
+          payload && typeof payload === 'object' && 'message' in payload && typeof payload.message === 'string'
+            ? payload.message
+            : 'No fue posible consultar trial de WellTech.';
+        throw new Error(message);
+      }
+
+      setWelltechTrialStatus(payload as WelltechTrialStatus);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Error inesperado.';
+      setWelltechTrialError(message);
+    } finally {
+      setWelltechTrialLoading(false);
+    }
+  };
 
   const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
 
@@ -167,6 +209,17 @@ export function DashboardHeader({
                   <option value="WELLTECH">WellTech (equipo 2)</option>
                 </select>
               </div>
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={async () => {
+                  setWelltechTrialModalOpen(true);
+                  await loadWelltechTrialStatus();
+                }}
+              >
+                <Clock3 className="mr-1.5 h-4 w-4" />
+                Trial WellTech
+              </Button>
               <Button variant="secondary" size="sm" onClick={onOpenTasks}>
                 <SquareCheck className="mr-1.5 h-4 w-4" />
                 Tasks
@@ -312,6 +365,48 @@ export function DashboardHeader({
           </Button>
         </div>
       </div>
+
+      {welltechTrialModalOpen && canManageTasks ? (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 px-4 backdrop-blur-sm">
+          <div className="w-full max-w-md rounded-3xl border border-slate-700/70 bg-slate-900/95 p-6 shadow-2xl">
+            <h3 className="text-lg font-semibold text-slate-100">Estado de prueba WellTech</h3>
+            <p className="mt-1 text-sm text-slate-400">Superadmin: monitoreo de licencia trial (equipo_id=2).</p>
+
+            <div className="mt-4 space-y-2 text-sm text-slate-200">
+              {welltechTrialLoading ? <p>Cargando estado...</p> : null}
+              {welltechTrialError ? <p className="text-rose-300">{welltechTrialError}</p> : null}
+              {!welltechTrialLoading && !welltechTrialError && welltechTrialStatus ? (
+                <>
+                  <p>
+                    Estado:{' '}
+                    <span className={welltechTrialStatus.expired ? 'text-rose-300' : 'text-emerald-300'}>
+                      {welltechTrialStatus.expired ? 'Expirado' : 'Activo'}
+                    </span>
+                  </p>
+                  <p>
+                    Tiempo restante:{' '}
+                    {welltechTrialStatus.expired
+                      ? '0 dias'
+                      : `${welltechTrialStatus.remainingDays} dias ${welltechTrialStatus.remainingHours} horas`}
+                  </p>
+                  <p>Inicio: {new Date(welltechTrialStatus.trialStart).toLocaleString()}</p>
+                  <p>Fin: {new Date(welltechTrialStatus.trialEnd).toLocaleString()}</p>
+                  <p>Fuente: {welltechTrialStatus.source === 'first_login' ? 'Primer login' : 'Fallback fijo'}</p>
+                </>
+              ) : null}
+            </div>
+
+            <div className="mt-5 flex justify-end gap-2">
+              <Button variant="secondary" onClick={() => setWelltechTrialModalOpen(false)}>
+                Cerrar
+              </Button>
+              <Button onClick={loadWelltechTrialStatus} disabled={welltechTrialLoading}>
+                Actualizar
+              </Button>
+            </div>
+          </div>
+        </div>
+      ) : null}
     </header>
   );
 }

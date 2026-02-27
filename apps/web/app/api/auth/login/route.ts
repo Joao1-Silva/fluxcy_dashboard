@@ -17,12 +17,14 @@ import {
   verifyWelltechTrialToken,
   trialCookieOptions,
   ROLE_COOKIE_NAME,
+  type WelltechTrialWindow,
 } from '@/lib/auth/server-auth';
 import {
   clearWelltechFailures,
   getWelltechRateLimitStatus,
   registerWelltechFailure,
 } from '@/lib/auth/welltech-rate-limit';
+import { readPersistedWelltechTrial, writePersistedWelltechTrial } from '@/lib/auth/welltech-trial-store';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -122,6 +124,15 @@ export async function POST(request: NextRequest) {
     const existingTrialToken = request.cookies.get(WELLTECH_TRIAL_COOKIE_NAME)?.value;
     const existingTrial = await verifyWelltechTrialToken(existingTrialToken);
     const fallback = getFallbackTrialWindow();
+    let persistedTrial: WelltechTrialWindow | null = null;
+    let trialStoreAvailable = true;
+
+    try {
+      persistedTrial = await readPersistedWelltechTrial();
+    } catch (error) {
+      trialStoreAvailable = false;
+      console.warn('[auth][welltech] No fue posible leer estado de trial persistido.', error);
+    }
 
     if (existingTrial && isTrialExpired(existingTrial.trialEnd)) {
       const response = loginError(
@@ -135,13 +146,32 @@ export async function POST(request: NextRequest) {
       return response;
     }
 
-    if (!existingTrial && isTrialExpired(fallback.trialEnd)) {
+    let effectiveWindow: WelltechTrialWindow;
+    let shouldPersistWindow = false;
+
+    if (existingTrial) {
+      effectiveWindow = {
+        trialStart: existingTrial.trialStart,
+        trialEnd: existingTrial.trialEnd,
+      };
+      shouldPersistWindow = persistedTrial === null && trialStoreAvailable;
+    } else if (persistedTrial) {
+      effectiveWindow = persistedTrial;
+    } else if (trialStoreAvailable) {
+      effectiveWindow = createTrialWindowFromNow();
+      shouldPersistWindow = true;
+    } else {
+      effectiveWindow = fallback;
+    }
+
+    if (isTrialExpired(effectiveWindow.trialEnd)) {
       const response = loginError(
         'Finalizo su prueba. Contacte a FLUXCY para activar su licencia.',
         403,
         true,
       );
       response.cookies.set(SESSION_COOKIE_NAME, '', clearCookieOptions());
+      response.cookies.set(WELLTECH_TRIAL_COOKIE_NAME, '', clearCookieOptions());
       response.cookies.set(ROLE_COOKIE_NAME, '', clearCookieOptions());
       return response;
     }
@@ -158,11 +188,18 @@ export async function POST(request: NextRequest) {
     response.cookies.set(SESSION_COOKIE_NAME, sessionToken, sessionCookieOptions());
     response.cookies.set(ROLE_COOKIE_NAME, '', clearCookieOptions());
 
-    if (!existingTrial) {
-      const trialWindow = createTrialWindowFromNow();
+    if (shouldPersistWindow) {
       try {
-        const trialToken = await createWelltechTrialToken(trialWindow);
-        response.cookies.set(WELLTECH_TRIAL_COOKIE_NAME, trialToken, trialCookieOptions(trialWindow.trialEnd));
+        await writePersistedWelltechTrial(effectiveWindow);
+      } catch (error) {
+        console.warn('[auth][welltech] No fue posible persistir estado de trial en archivo local.', error);
+      }
+    }
+
+    if (!existingTrialToken) {
+      try {
+        const trialToken = await createWelltechTrialToken(effectiveWindow);
+        response.cookies.set(WELLTECH_TRIAL_COOKIE_NAME, trialToken, trialCookieOptions(effectiveWindow.trialEnd));
       } catch (error) {
         console.error('[auth][welltech] No fue posible firmar wt_trial, se aplicara fallback de fecha fija.', error);
       }
