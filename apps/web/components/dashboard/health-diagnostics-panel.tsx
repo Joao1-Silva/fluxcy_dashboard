@@ -20,12 +20,12 @@ type HealthDiagnosticsPanelProps = {
 
 function statusIcon(status: HealthStatus) {
   if (status === 'CRITICAL') {
-    return <Siren className="h-4 w-4 text-rose-300" />;
+    return <Siren className="h-4 w-4 text-[color:var(--danger)]" />;
   }
   if (status === 'WARN') {
-    return <AlertTriangle className="h-4 w-4 text-amber-300" />;
+    return <AlertTriangle className="h-4 w-4 text-[color:var(--warning)]" />;
   }
-  return <CheckCircle2 className="h-4 w-4 text-emerald-300" />;
+  return <CheckCircle2 className="h-4 w-4 text-[color:var(--success)]" />;
 }
 
 function statusVariant(status: HealthStatus): 'success' | 'warning' | 'danger' {
@@ -52,9 +52,9 @@ export function HealthDiagnosticsPanel({ overall, checks }: HealthDiagnosticsPan
       </CardHeader>
 
       <CardContent>
-        <div className="max-h-[320px] overflow-auto rounded-xl border border-slate-700/60">
+        <div className="max-h-[320px] overflow-auto rounded-xl border border-[color:rgba(var(--border-rgb),0.78)]">
           <table className="w-full min-w-[420px] text-sm">
-            <thead className="sticky top-0 z-10 bg-slate-900/95 text-xs uppercase tracking-wide text-slate-300">
+            <thead className="sticky top-0 z-10 bg-[color:var(--table-head-bg)] text-xs uppercase tracking-wide text-[color:var(--text-muted)]">
               <tr>
                 <th className="px-3 py-2 text-left">Check</th>
                 <th className="px-3 py-2 text-left">Status</th>
@@ -63,14 +63,14 @@ export function HealthDiagnosticsPanel({ overall, checks }: HealthDiagnosticsPan
             </thead>
             <tbody>
               {checks.map((row) => (
-                <tr key={row.check} className="border-t border-slate-800/80 text-slate-200">
+                <tr key={row.check} className="border-t border-[color:rgba(var(--border-rgb),0.76)] text-[color:var(--text)]">
                   <td className="px-3 py-2 font-medium">{row.check}</td>
                   <td className="px-3 py-2">
-                    <Badge variant={statusVariant(row.status)} className="px-2.5 py-0.5">
+                    <Badge variant={statusVariant(row.status)} className="px-2.5 py-0.5 font-semibold">
                       {row.status}
                     </Badge>
                   </td>
-                  <td className="px-3 py-2 text-slate-300">{row.detail}</td>
+                  <td className="px-3 py-2 text-[color:var(--text-muted)]">{row.detail}</td>
                 </tr>
               ))}
             </tbody>

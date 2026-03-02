@@ -2,7 +2,7 @@ export type DataMode = 'realtime' | 'api';
 
 export type SocketStatus = 'connected' | 'disconnected' | 'error';
 
-export type DashboardThemeMode = 'Default' | 'iOS26';
+export type DashboardThemeMode = 'black' | 'gray' | 'white' | 'high-contrast';
 
 export type Snapshot = {
   t: string;

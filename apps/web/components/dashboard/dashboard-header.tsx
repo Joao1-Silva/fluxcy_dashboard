@@ -18,6 +18,7 @@ import {
 } from 'lucide-react';
 
 import { StatusChip } from '@/components/layout/status-chip';
+import { ThemeSelector } from '@/components/layout/theme-selector';
 import { AssistantAgentDialog } from '@/components/dashboard/assistant-agent-dialog';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -27,6 +28,7 @@ import {
   getApiProfileOverrideFromBrowser,
   setApiProfileOverrideInBrowser,
 } from '@/lib/api-profile';
+import { DASHBOARD_THEME_LABELS } from '@/lib/theme';
 import { REFRESH_OPTIONS, RANGE_PRESETS, fromDateTimeLocalInput, toDateTimeLocalInput } from '@/lib/time';
 import { useDashboardStore } from '@/store/dashboard-store';
 import type { AuthRole } from '@/types/auth';
@@ -168,7 +170,7 @@ export function DashboardHeader({
         <div className="min-w-0">
           <h1 className="text-lg font-semibold tracking-wide text-slate-100 lg:text-xl">FLUXCY DEV V1</h1>
           <p className="text-xs text-slate-400 sm:text-sm">
-            Dashboard BFF / Socket.IO | Timezone: {timezone} | Theme: {themeMode}
+            Dashboard BFF / Socket.IO | Timezone: {timezone} | Theme: {DASHBOARD_THEME_LABELS[themeMode]}
           </p>
         </div>
         <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto sm:justify-end">
@@ -287,20 +289,7 @@ export function DashboardHeader({
             <Palette className="h-3.5 w-3.5" />
             Theme
           </Label>
-          <div className="flex flex-wrap gap-2">
-            <ToggleButton
-              current={themeMode}
-              value="Default"
-              label="Default"
-              onClick={() => setThemeMode('Default')}
-            />
-            <ToggleButton
-              current={themeMode}
-              value="iOS26"
-              label="iOS26"
-              onClick={() => setThemeMode('iOS26')}
-            />
-          </div>
+          <ThemeSelector value={themeMode} onChange={setThemeMode} />
         </div>
 
         <div className="space-y-2 rounded-xl border border-slate-700/60 bg-slate-950/55 p-3 xl:col-span-1">

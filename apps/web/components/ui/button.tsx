@@ -5,16 +5,16 @@ import { Slot } from '@radix-ui/react-slot';
 import { cn } from '@/lib/utils';
 
 const buttonVariants = cva(
-  'inline-flex items-center justify-center whitespace-nowrap rounded-xl text-sm font-medium transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-400 disabled:pointer-events-none disabled:opacity-50',
+  'inline-flex items-center justify-center whitespace-nowrap rounded-xl text-sm font-medium transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--focus-ring)] focus-visible:ring-offset-2 focus-visible:ring-offset-[color:var(--bg)] disabled:pointer-events-none disabled:opacity-50',
   {
     variants: {
       variant: {
-        default:
-          'bg-sky-500/90 text-slate-950 shadow-glow hover:bg-sky-400 active:translate-y-[1px]',
-        secondary: 'bg-slate-800/80 text-slate-100 hover:bg-slate-700/80',
-        ghost: 'text-slate-200 hover:bg-slate-800/70',
-        danger: 'bg-rose-500/85 text-white hover:bg-rose-400',
-        outline: 'border border-slate-600 bg-slate-900/70 text-slate-100 hover:border-sky-400/60',
+        default: 'bg-[color:var(--primary)] text-[color:var(--primary-contrast)] shadow-[var(--shadow-soft)] hover:brightness-105 active:translate-y-[1px]',
+        secondary: 'bg-[color:var(--surface-2)] text-[color:var(--text)] hover:bg-[color:var(--surface-3)]',
+        ghost: 'text-[color:var(--text-muted)] hover:bg-[color:var(--surface-2)] hover:text-[color:var(--text)]',
+        danger: 'bg-[color:var(--danger)] text-[color:var(--danger-contrast)] hover:brightness-105',
+        outline:
+          'border border-[color:var(--border)] bg-[color:var(--surface)] text-[color:var(--text)] hover:border-[color:var(--focus-ring)] hover:bg-[color:var(--surface-2)]',
       },
       size: {
         default: 'h-10 px-4 py-2',

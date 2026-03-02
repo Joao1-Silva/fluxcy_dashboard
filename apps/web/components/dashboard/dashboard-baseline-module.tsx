@@ -78,8 +78,8 @@ export function DashboardBaselineModule({
           data={data.flowQuery.data?.series ?? []}
           loading={data.flowQuery.isLoading}
           lines={[
-            { key: 'qm_liq', label: 'Liquido Bls/d', color: '#8b5cf6' },
-            { key: 'qm_gas', label: 'Gas MSCFD', color: '#f97316' },
+            { key: 'qm_liq', label: 'Liquido Bls/d', color: 'var(--chart-series-1)' },
+            { key: 'qm_gas', label: 'Gas MSCFD', color: 'var(--chart-series-2)' },
           ]}
           rightActions={
             <Button variant={smoothFlow ? 'default' : 'secondary'} size="sm" onClick={onToggleSmooth}>
@@ -95,10 +95,10 @@ export function DashboardBaselineModule({
           data={data.vpQuery.data?.series ?? []}
           loading={data.vpQuery.isLoading}
           lines={[
-            { key: 'temp_liq', label: 'Temp Liq', color: '#60a5fa' },
-            { key: 'temperatura_gas_f', label: 'Temp Gas', color: '#f59e0b' },
-            { key: 'psi_gas', label: 'PSI Gas', color: '#22c55e' },
-            { key: 'psi_liq', label: 'PSI Liq', color: '#f43f5e' },
+            { key: 'temp_liq', label: 'Temp Liq', color: 'var(--chart-series-3)' },
+            { key: 'temperatura_gas_f', label: 'Temp Gas', color: 'var(--chart-series-4)' },
+            { key: 'psi_gas', label: 'PSI Gas', color: 'var(--chart-series-5)' },
+            { key: 'psi_liq', label: 'PSI Liq', color: 'var(--chart-series-6)' },
           ]}
         />
 
@@ -108,8 +108,8 @@ export function DashboardBaselineModule({
           data={data.rhoQuery.data?.series ?? []}
           loading={data.rhoQuery.isLoading}
           lines={[
-            { key: 'rho_liq', label: 'rho_liq', color: '#818cf8' },
-            { key: 'rho_gas', label: 'rho_gas', color: '#14b8a6' },
+            { key: 'rho_liq', label: 'rho_liq', color: 'var(--chart-series-1)' },
+            { key: 'rho_gas', label: 'rho_gas', color: 'var(--chart-series-7)' },
           ]}
         />
 
@@ -119,10 +119,10 @@ export function DashboardBaselineModule({
           data={data.produccionQuery.data?.series ?? []}
           loading={data.produccionQuery.isLoading}
           lines={[
-            { key: 'liq_acum', label: 'liq_acum (Bls)', color: '#8b5cf6' },
-            { key: 'gas_acum', label: 'gas_acum (MSCF)', color: '#f97316' },
+            { key: 'liq_acum', label: 'liq_acum (Bls)', color: 'var(--chart-series-1)' },
+            { key: 'gas_acum', label: 'gas_acum (MSCF)', color: 'var(--chart-series-2)' },
           ]}
-          rightActions={<GaugeCircle className="h-4 w-4 text-slate-400" />}
+          rightActions={<GaugeCircle className="h-4 w-4 text-[color:var(--text-muted)]" />}
         />
       </section>
 

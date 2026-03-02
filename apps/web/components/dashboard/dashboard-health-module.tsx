@@ -216,8 +216,8 @@ export function DashboardHealthModule({
           data={recentFlow}
           loading={data.flowQuery.isLoading}
           lines={[
-            { key: 'qm_liq', label: 'Liquido Bls/d', color: '#8b5cf6' },
-            { key: 'qm_gas', label: 'Gas MSCFD', color: '#f97316' },
+            { key: 'qm_liq', label: 'Liquido Bls/d', color: 'var(--chart-series-1)' },
+            { key: 'qm_gas', label: 'Gas MSCFD', color: 'var(--chart-series-2)' },
           ]}
           rightActions={
             <Button variant={smoothFlow ? 'default' : 'secondary'} size="sm" onClick={onToggleSmooth}>
@@ -233,11 +233,11 @@ export function DashboardHealthModule({
           data={recentVp}
           loading={data.vpQuery.isLoading}
           lines={[
-            { key: 'temp_liq', label: 'Temp Liq', color: '#60a5fa' },
-            { key: 'psi_gas', label: 'PSI Gas', color: '#22c55e' },
-            { key: 'psi_liq', label: 'PSI Liq', color: '#f43f5e' },
+            { key: 'temp_liq', label: 'Temp Liq', color: 'var(--chart-series-3)' },
+            { key: 'psi_gas', label: 'PSI Gas', color: 'var(--chart-series-5)' },
+            { key: 'psi_liq', label: 'PSI Liq', color: 'var(--chart-series-6)' },
           ]}
-          rightActions={<GaugeCircle className="h-4 w-4 text-slate-400" />}
+          rightActions={<GaugeCircle className="h-4 w-4 text-[color:var(--text-muted)]" />}
         />
       </section>
 

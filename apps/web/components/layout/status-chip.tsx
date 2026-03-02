@@ -8,21 +8,32 @@ type StatusChipProps = {
   status: 'connected' | 'polling' | 'error';
 };
 
-const statusStyles: Record<StatusChipProps['status'], { label: string; icon: ReactNode; className: string }> = {
+const statusStyles: Record<
+  StatusChipProps['status'],
+  {
+    label: string;
+    icon: ReactNode;
+    className: string;
+    variant: 'success' | 'warning' | 'danger';
+  }
+> = {
   connected: {
     label: 'Connected',
     icon: <Wifi className="h-3.5 w-3.5" />,
-    className: 'border-emerald-400/50 bg-emerald-500/20 text-emerald-200',
+    className: 'status-chip--connected',
+    variant: 'success',
   },
   polling: {
     label: 'Polling',
     icon: <WifiOff className="h-3.5 w-3.5" />,
-    className: 'border-amber-400/40 bg-amber-500/20 text-amber-200',
+    className: 'status-chip--polling',
+    variant: 'warning',
   },
   error: {
     label: 'Error',
     icon: <AlertTriangle className="h-3.5 w-3.5" />,
-    className: 'border-rose-400/50 bg-rose-500/20 text-rose-200',
+    className: 'status-chip--error',
+    variant: 'danger',
   },
 };
 
@@ -30,7 +41,7 @@ export function StatusChip({ status }: StatusChipProps) {
   const style = statusStyles[status];
 
   return (
-    <Badge className={cn('gap-1.5 px-3 py-1 text-xs', style.className)} variant="muted">
+    <Badge className={cn('status-chip gap-1.5 px-3 py-1 text-xs font-semibold', style.className)} variant={style.variant}>
       {style.icon}
       {style.label}
     </Badge>

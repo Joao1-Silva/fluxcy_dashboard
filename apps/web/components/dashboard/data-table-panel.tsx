@@ -72,9 +72,9 @@ export function DataTablePanel({
         {loading ? (
           <Skeleton className="h-56 w-full rounded-xl" />
         ) : (
-          <div className="-mx-1 max-h-72 overflow-auto rounded-xl border border-slate-700/60 px-1 sm:mx-0 sm:px-0">
+          <div className="-mx-1 max-h-72 overflow-auto rounded-xl border border-[color:rgba(var(--border-rgb),0.78)] px-1 sm:mx-0 sm:px-0">
             <table className="w-full min-w-[460px] text-xs sm:min-w-[560px] sm:text-sm">
-              <thead className="sticky top-0 z-10 bg-slate-900/95 text-xs uppercase tracking-wide text-slate-300">
+              <thead className="sticky top-0 z-10 bg-[color:var(--table-head-bg)] text-xs uppercase tracking-wide text-[color:var(--text-muted)]">
                 <tr>
                   <th className="whitespace-nowrap px-3 py-2 text-left">Time</th>
                   {columns.map((column) => (
@@ -86,8 +86,8 @@ export function DataTablePanel({
               </thead>
               <tbody>
                 {paginated.map((row, index) => (
-                  <tr key={`${row.time}-${index}`} className="border-t border-slate-800/80 text-slate-200">
-                    <td className="whitespace-nowrap px-3 py-2 text-xs text-slate-400">
+                  <tr key={`${row.time}-${index}`} className="border-t border-[color:rgba(var(--border-rgb),0.76)] text-[color:var(--text)]">
+                    <td className="whitespace-nowrap px-3 py-2 text-xs text-[color:var(--text-muted)]">
                       {formatTableTime(row.time)}
                     </td>
                     {columns.map((column) => (
@@ -104,7 +104,7 @@ export function DataTablePanel({
           </div>
         )}
 
-        <div className="flex flex-col gap-2 text-xs text-slate-400 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex flex-col gap-2 text-xs text-[color:var(--text-muted)] sm:flex-row sm:items-center sm:justify-between">
           <span>
             Page {currentPage + 1} / {totalPages}
           </span>

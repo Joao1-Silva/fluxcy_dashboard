@@ -195,14 +195,14 @@ export function TimeSeriesPanel({
       ref={panelRef}
       className={cn(
         'chart-panel relative',
-        fallbackExpanded ? 'fixed inset-0 z-[70] overflow-y-auto bg-slate-950/95 p-2 sm:p-4' : '',
+        fallbackExpanded ? 'fixed inset-0 z-[70] overflow-y-auto bg-[color:var(--overlay-strong)] p-2 sm:p-4' : '',
       )}
     >
       <Card className={cn('h-full overflow-hidden', isExpanded ? 'mx-auto max-w-[1880px]' : '')}>
         <CardHeader className="mb-2">
           <div className="min-w-0">
             <CardTitle className="truncate">{title}</CardTitle>
-            {subtitle ? <p className="text-xs text-slate-400">{subtitle}</p> : null}
+            {subtitle ? <p className="text-xs text-[color:var(--text-muted)]">{subtitle}</p> : null}
           </div>
           <div className="flex w-full flex-wrap items-center justify-end gap-2 sm:w-auto">
             {rightActions}
@@ -236,8 +236,8 @@ export function TimeSeriesPanel({
                       className={cn(
                         'inline-flex items-center gap-2 rounded-lg border px-2 py-1 text-xs transition',
                         selected
-                          ? 'border-slate-100 bg-slate-100/10 text-slate-100'
-                          : 'border-slate-700/70 bg-slate-900/70 text-slate-300 hover:border-slate-500',
+                          ? 'border-[color:var(--focus-ring)] bg-[color:rgba(var(--primary-rgb),0.18)] text-[color:var(--text)]'
+                          : 'border-[color:rgba(var(--border-rgb),0.72)] bg-[color:rgba(var(--surface-rgb),0.72)] text-[color:var(--text-muted)] hover:border-[color:var(--border-strong)]',
                         muted ? 'opacity-50' : '',
                       )}
                     >
@@ -261,19 +261,19 @@ export function TimeSeriesPanel({
               </div>
 
               {selectedLine && selectedStats ? (
-                <div className="mb-2 rounded-xl border border-slate-700/70 bg-slate-950/70 px-3 py-2 text-xs text-slate-200">
-                  <span className="mr-3 inline-flex items-center gap-2 font-medium text-slate-100">
+                <div className="mb-2 rounded-xl border border-[color:rgba(var(--border-rgb),0.72)] bg-[color:rgba(var(--bg-rgb),0.7)] px-3 py-2 text-xs text-[color:var(--text)]">
+                  <span className="mr-3 inline-flex items-center gap-2 font-medium text-[color:var(--text)]">
                     <span
                       className="h-2.5 w-2.5 rounded-full"
                       style={{ backgroundColor: selectedLine.color }}
                     />
                     Detalle {selectedLine.label}
                   </span>
-                  <span className="mr-3 text-slate-300">Ultimo: {formatNumeric(selectedStats.latest, 2)}</span>
-                  <span className="mr-3 text-slate-300">Min: {formatNumeric(selectedStats.min, 2)}</span>
-                  <span className="mr-3 text-slate-300">Max: {formatNumeric(selectedStats.max, 2)}</span>
-                  <span className="mr-3 text-slate-300">Prom: {formatNumeric(selectedStats.avg, 2)}</span>
-                  <span className="text-slate-400">Puntos: {selectedStats.points}</span>
+                  <span className="mr-3 text-[color:var(--text-muted)]">Ultimo: {formatNumeric(selectedStats.latest, 2)}</span>
+                  <span className="mr-3 text-[color:var(--text-muted)]">Min: {formatNumeric(selectedStats.min, 2)}</span>
+                  <span className="mr-3 text-[color:var(--text-muted)]">Max: {formatNumeric(selectedStats.max, 2)}</span>
+                  <span className="mr-3 text-[color:var(--text-muted)]">Prom: {formatNumeric(selectedStats.avg, 2)}</span>
+                  <span className="text-[color:var(--text-muted)]">Puntos: {selectedStats.points}</span>
                 </div>
               ) : null}
 
@@ -283,22 +283,23 @@ export function TimeSeriesPanel({
                     data={data}
                     margin={{ top: 8, right: isCompact ? 6 : 12, left: 0, bottom: isCompact ? 2 : 6 }}
                   >
-                    <CartesianGrid stroke="rgba(148,163,184,0.18)" strokeDasharray="3 3" />
+                    <CartesianGrid stroke="var(--chart-grid)" strokeDasharray="3 3" />
                     <XAxis
                       dataKey="t"
                       tickFormatter={formatTimeLabel}
-                      tick={{ fill: '#94A3B8', fontSize: isCompact ? 10 : 11 }}
+                      tick={{ fill: 'var(--chart-axis)', fontSize: isCompact ? 10 : 11 }}
                       minTickGap={isCompact ? 28 : 14}
                     />
                     <YAxis
-                      tick={{ fill: '#94A3B8', fontSize: isCompact ? 10 : 11 }}
+                      tick={{ fill: 'var(--chart-axis)', fontSize: isCompact ? 10 : 11 }}
                       width={isCompact ? 36 : 44}
                     />
                     <Tooltip
                       contentStyle={{
                         borderRadius: '12px',
-                        border: '1px solid rgba(56,189,248,0.35)',
-                        background: 'rgba(2,6,23,0.9)',
+                        border: '1px solid var(--tooltip-border)',
+                        background: 'var(--tooltip-bg)',
+                        color: 'var(--text)',
                       }}
                       labelFormatter={(value) => formatTimeLabel(String(value))}
                     />

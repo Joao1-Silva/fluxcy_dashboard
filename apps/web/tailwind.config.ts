@@ -19,7 +19,7 @@ const config: Config = {
         'muted-foreground': 'hsl(var(--muted-foreground))',
         accent: 'hsl(var(--accent))',
         'accent-foreground': 'hsl(var(--accent-foreground))',
-        border: 'hsl(var(--border))',
+        border: 'var(--border)',
       },
       borderRadius: {
         xl: '1rem',

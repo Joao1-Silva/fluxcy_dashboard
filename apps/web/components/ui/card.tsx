@@ -8,7 +8,7 @@ const Card = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElemen
       ref={ref}
       data-dashboard-card="true"
       className={cn(
-        'rounded-2xl border border-sky-300/20 bg-slate-900/60 p-4 shadow-glow backdrop-blur-xl',
+        'rounded-2xl border border-[color:var(--border)] bg-[color:var(--surface)] p-4 text-[color:var(--text)] shadow-[var(--shadow-soft)] backdrop-blur-xl',
         className,
       )}
       {...props}
@@ -26,14 +26,14 @@ CardHeader.displayName = 'CardHeader';
 
 const CardTitle = React.forwardRef<HTMLHeadingElement, React.HTMLAttributes<HTMLHeadingElement>>(
   ({ className, ...props }, ref) => (
-    <h3 ref={ref} className={cn('text-sm font-semibold text-slate-100', className)} {...props} />
+    <h3 ref={ref} className={cn('text-sm font-semibold text-[color:var(--text)]', className)} {...props} />
   ),
 );
 CardTitle.displayName = 'CardTitle';
 
 const CardDescription = React.forwardRef<HTMLParagraphElement, React.HTMLAttributes<HTMLParagraphElement>>(
   ({ className, ...props }, ref) => (
-    <p ref={ref} className={cn('text-xs text-slate-400', className)} {...props} />
+    <p ref={ref} className={cn('text-xs text-[color:var(--text-muted)]', className)} {...props} />
   ),
 );
 CardDescription.displayName = 'CardDescription';

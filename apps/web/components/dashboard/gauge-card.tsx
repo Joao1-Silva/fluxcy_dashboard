@@ -19,18 +19,18 @@ export function GaugeCard({ label, min, max, value, unit }: GaugeCardProps) {
   return (
     <Card>
       <CardHeader className="mb-2">
-        <CardTitle className="text-xs uppercase tracking-wide text-slate-400">{label}</CardTitle>
-        <Gauge className="h-4 w-4 text-sky-300/80" />
+        <CardTitle className="text-xs uppercase tracking-wide text-[color:var(--text-muted)]">{label}</CardTitle>
+        <Gauge className="h-4 w-4 text-[color:var(--info)]" />
       </CardHeader>
       <CardContent className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-4">
         <svg viewBox="0 0 100 100" className="h-20 w-20 shrink-0 sm:h-24 sm:w-24">
-          <circle cx="50" cy="50" r="42" fill="none" stroke="rgba(71,85,105,0.35)" strokeWidth="8" />
+          <circle cx="50" cy="50" r="42" fill="none" stroke="rgba(var(--border-rgb),0.45)" strokeWidth="8" />
           <circle
             cx="50"
             cy="50"
             r="42"
             fill="none"
-            stroke="rgba(56,189,248,0.95)"
+            stroke="var(--primary)"
             strokeWidth="8"
             strokeLinecap="round"
             strokeDasharray={`${dash} ${circumference}`}
@@ -38,10 +38,11 @@ export function GaugeCard({ label, min, max, value, unit }: GaugeCardProps) {
           />
         </svg>
         <div className="min-w-0">
-          <div className="text-2xl font-semibold text-slate-100 sm:text-3xl">
-            {formatNumeric(value)} {unit ? <span className="text-sm text-slate-400 sm:text-base">{unit}</span> : null}
+          <div className="text-2xl font-semibold text-[color:var(--text)] sm:text-3xl">
+            {formatNumeric(value)}{' '}
+            {unit ? <span className="text-sm text-[color:var(--text-muted)] sm:text-base">{unit}</span> : null}
           </div>
-          <p className="text-xs text-slate-400">
+          <p className="text-xs text-[color:var(--text-muted)]">
             Range: {min} - {max}
           </p>
         </div>

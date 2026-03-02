@@ -4,6 +4,7 @@ import { subHours } from 'date-fns';
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 
+import { normalizeTheme } from '@/lib/theme';
 import { buildRange, RANGE_PRESETS } from '@/lib/time';
 import type { ApiProfile } from '@/types/api-profile';
 import type { DashboardThemeMode, DataMode, SocketStatus, TimeRange } from '@/types/dashboard';
@@ -41,7 +42,7 @@ const initialRange = buildRange(subHours(new Date(), 1), new Date());
 
 const defaultState = {
   mode: 'realtime' as DataMode,
-  themeMode: 'Default' as DashboardThemeMode,
+  themeMode: 'black' as DashboardThemeMode,
   socketStatus: 'disconnected' as SocketStatus,
   fallbackPolling: false,
   canResumeRealtime: false,
@@ -121,9 +122,24 @@ export const useDashboardStore = create<DashboardState>()(
     }),
     {
       name: 'fluxcy-dashboard-store',
+      version: 2,
+      migrate: (persistedState) => {
+        const state = (persistedState ?? {}) as Partial<DashboardState> & {
+          themeMode?: unknown;
+        };
+
+        return {
+          ...state,
+          themeMode: normalizeTheme(state.themeMode) ?? defaultState.themeMode,
+        } as DashboardState;
+      },
+      merge: (persistedState, currentState) => ({
+        ...currentState,
+        ...(persistedState as Partial<DashboardState>),
+        themeMode: currentState.themeMode,
+      }),
       partialize: (state) => ({
         mode: state.mode,
-        themeMode: state.themeMode,
         paused: state.paused,
         refreshMs: state.refreshMs,
         presetKey: state.presetKey,

@@ -17,7 +17,7 @@ function SheetPortal({ children }: { children: ReactNode }) {
 function SheetOverlay({ className, ...props }: Dialog.DialogOverlayProps) {
   return (
     <Dialog.Overlay
-      className={cn('fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-sm', className)}
+      className={cn('fixed inset-0 z-50 bg-[color:var(--overlay)] backdrop-blur-sm', className)}
       {...props}
     />
   );
@@ -29,13 +29,13 @@ function SheetContent({ className, children, ...props }: Dialog.DialogContentPro
       <SheetOverlay />
       <Dialog.Content
         className={cn(
-          'fixed right-0 top-0 z-50 h-full w-full max-w-xl border-l border-sky-300/30 bg-slate-950/95 p-5 shadow-2xl backdrop-blur-xl data-[state=open]:animate-fadeIn',
+          'fixed right-0 top-0 z-50 h-full w-full max-w-xl border-l border-[color:rgba(var(--primary-rgb),0.45)] bg-[color:rgba(var(--bg-rgb),0.96)] p-5 shadow-[var(--shadow)] backdrop-blur-xl data-[state=open]:animate-fadeIn',
           className,
         )}
         {...props}
       >
         {children}
-        <Dialog.Close className="absolute right-4 top-4 rounded-lg p-2 text-slate-400 hover:bg-slate-800/80 hover:text-slate-100">
+        <Dialog.Close className="absolute right-4 top-4 rounded-lg p-2 text-[color:var(--text-muted)] hover:bg-[color:var(--surface-2)] hover:text-[color:var(--text)]">
           <X className="h-4 w-4" />
           <span className="sr-only">Cerrar</span>
         </Dialog.Close>
@@ -49,11 +49,11 @@ function SheetHeader({ className, ...props }: HTMLAttributes<HTMLDivElement>) {
 }
 
 function SheetTitle({ className, ...props }: Dialog.DialogTitleProps) {
-  return <Dialog.Title className={cn('text-lg font-semibold text-slate-100', className)} {...props} />;
+  return <Dialog.Title className={cn('text-lg font-semibold text-[color:var(--text)]', className)} {...props} />;
 }
 
 function SheetDescription({ className, ...props }: Dialog.DialogDescriptionProps) {
-  return <Dialog.Description className={cn('text-sm text-slate-400', className)} {...props} />;
+  return <Dialog.Description className={cn('text-sm text-[color:var(--text-muted)]', className)} {...props} />;
 }
 
 export {

@@ -2,22 +2,40 @@
 
 import { useEffect } from 'react';
 
+import {
+  applyTheme,
+  getInitialTheme,
+  hasStoredThemeSelection,
+  subscribeSystemThemeChanges,
+  subscribeThemeChanges,
+} from '@/lib/theme';
 import { useDashboardStore } from '@/store/dashboard-store';
-
-const THEME_CLASS = {
-  Default: 'theme-default',
-  iOS26: 'theme-ios26',
-} as const;
 
 export function ThemeController() {
   const themeMode = useDashboardStore((state) => state.themeMode);
+  const setThemeMode = useDashboardStore((state) => state.setThemeMode);
 
   useEffect(() => {
-    const target = document.body;
-    target.classList.remove(THEME_CLASS.Default, THEME_CLASS.iOS26);
-    target.classList.add(themeMode === 'iOS26' ? THEME_CLASS.iOS26 : THEME_CLASS.Default);
-    target.dataset.themeMode = themeMode;
+    const initialTheme = getInitialTheme();
+    setThemeMode(initialTheme);
+    applyTheme(initialTheme);
+  }, [setThemeMode]);
+
+  useEffect(() => {
+    applyTheme(themeMode);
   }, [themeMode]);
+
+  useEffect(() => subscribeThemeChanges(setThemeMode), [setThemeMode]);
+
+  useEffect(
+    () =>
+      subscribeSystemThemeChanges((systemTheme) => {
+        if (!hasStoredThemeSelection()) {
+          setThemeMode(systemTheme);
+        }
+      }),
+    [setThemeMode],
+  );
 
   return null;
 }
