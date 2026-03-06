@@ -5,8 +5,14 @@ import { API_PROFILE_OVERRIDE_COOKIE, getApiProfileFromSession, WELLTECH_EQUIPO_
 const JWT_ALG = 'HS256';
 const JWT_TYP = 'JWT';
 const SESSION_COOKIE_MAX_AGE_SECONDS = 60 * 60 * 24 * 30;
-const TRIAL_DAYS = 16;
-const TRIAL_DURATION_MS = TRIAL_DAYS * 24 * 60 * 60 * 1000;
+const DAY_MS = 24 * 60 * 60 * 1000;
+const LEGACY_TRIAL_DAYS = 16;
+const TRIAL_BONUS_DAYS = 5;
+const TRIAL_DAYS = LEGACY_TRIAL_DAYS + TRIAL_BONUS_DAYS;
+const TRIAL_DURATION_MS = TRIAL_DAYS * DAY_MS;
+const LEGACY_TRIAL_DURATION_MS = LEGACY_TRIAL_DAYS * DAY_MS;
+const TRIAL_BONUS_DURATION_MS = TRIAL_BONUS_DAYS * DAY_MS;
+const LEGACY_TRIAL_TOLERANCE_MS = 60 * 1000;
 const CARACAS_TIMEZONE = 'America/Caracas';
 const CARACAS_OFFSET = '-04:00';
 const DEFAULT_TRIAL_FALLBACK_START = '2026-02-27T11:00:00-04:00';
@@ -211,6 +217,42 @@ function trialWindowFromStart(startDate: Date): WelltechTrialWindow {
   return { trialStart, trialEnd };
 }
 
+function isLegacyTrialDuration(window: WelltechTrialWindow): boolean {
+  const trialStartMs = parseIsoMs(window.trialStart);
+  const trialEndMs = parseIsoMs(window.trialEnd);
+  if (trialStartMs === null || trialEndMs === null) {
+    return false;
+  }
+
+  const durationMs = trialEndMs - trialStartMs;
+  if (durationMs <= 0) {
+    return false;
+  }
+
+  return durationMs <= LEGACY_TRIAL_DURATION_MS + LEGACY_TRIAL_TOLERANCE_MS;
+}
+
+export function applyWelltechTrialBonus(window: WelltechTrialWindow): WelltechTrialWindow {
+  const normalizedWindow = {
+    trialStart: normalizeIso(window.trialStart),
+    trialEnd: normalizeIso(window.trialEnd),
+  };
+
+  if (!isLegacyTrialDuration(normalizedWindow)) {
+    return normalizedWindow;
+  }
+
+  const trialEndMs = parseIsoMs(normalizedWindow.trialEnd);
+  if (trialEndMs === null) {
+    return normalizedWindow;
+  }
+
+  return {
+    trialStart: normalizedWindow.trialStart,
+    trialEnd: toCaracasIso(new Date(trialEndMs + TRIAL_BONUS_DURATION_MS)),
+  };
+}
+
 export function getFallbackTrialWindow(): WelltechTrialWindow {
   const configured = process.env.TRIAL_FALLBACK_START?.trim() || DEFAULT_TRIAL_FALLBACK_START;
   const parsed = new Date(configured);
@@ -392,11 +434,16 @@ export async function verifyWelltechTrialToken(
     return null;
   }
 
+  const normalizedWindow = applyWelltechTrialBonus({
+    trialStart: claimStart,
+    trialEnd: claimEnd,
+  });
+
   return {
     sub: 'welltech',
     role: 'welltech',
-    trialStart: normalizeIso(claimStart),
-    trialEnd: normalizeIso(claimEnd),
+    trialStart: normalizedWindow.trialStart,
+    trialEnd: normalizedWindow.trialEnd,
     apiProfile: 'WELLTECH',
     equipoId: WELLTECH_EQUIPO_ID,
     iat,

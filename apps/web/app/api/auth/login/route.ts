@@ -4,6 +4,7 @@ import { NextResponse } from 'next/server';
 import type { AuthUser } from '@/types/auth';
 import { BASE_AUTH_USERS } from '@/lib/auth-config';
 import {
+  applyWelltechTrialBonus,
   clearCookieOptions,
   createSessionToken,
   createTrialWindowFromNow,
@@ -33,6 +34,10 @@ type LoginBody = {
   username: string;
   password: string;
 };
+
+function sameTrialWindow(left: WelltechTrialWindow, right: WelltechTrialWindow): boolean {
+  return left.trialStart === right.trialStart && left.trialEnd === right.trialEnd;
+}
 
 function parseBody(payload: unknown): LoginBody | null {
   if (!payload || typeof payload !== 'object' || Array.isArray(payload)) {
@@ -125,10 +130,16 @@ export async function POST(request: NextRequest) {
     const existingTrial = await verifyWelltechTrialToken(existingTrialToken);
     const fallback = getFallbackTrialWindow();
     let persistedTrial: WelltechTrialWindow | null = null;
+    let persistedTrialAdjusted = false;
     let trialStoreAvailable = true;
 
     try {
       persistedTrial = await readPersistedWelltechTrial();
+      if (persistedTrial) {
+        const adjusted = applyWelltechTrialBonus(persistedTrial);
+        persistedTrialAdjusted = !sameTrialWindow(adjusted, persistedTrial);
+        persistedTrial = adjusted;
+      }
     } catch (error) {
       trialStoreAvailable = false;
       console.warn('[auth][welltech] No fue posible leer estado de trial persistido.', error);
@@ -150,13 +161,14 @@ export async function POST(request: NextRequest) {
     let shouldPersistWindow = false;
 
     if (existingTrial) {
-      effectiveWindow = {
+      effectiveWindow = applyWelltechTrialBonus({
         trialStart: existingTrial.trialStart,
         trialEnd: existingTrial.trialEnd,
-      };
-      shouldPersistWindow = persistedTrial === null && trialStoreAvailable;
+      });
+      shouldPersistWindow = trialStoreAvailable && (!persistedTrial || !sameTrialWindow(persistedTrial, effectiveWindow));
     } else if (persistedTrial) {
       effectiveWindow = persistedTrial;
+      shouldPersistWindow = trialStoreAvailable && persistedTrialAdjusted;
     } else if (trialStoreAvailable) {
       effectiveWindow = createTrialWindowFromNow();
       shouldPersistWindow = true;
@@ -196,13 +208,11 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    if (!existingTrialToken) {
-      try {
-        const trialToken = await createWelltechTrialToken(effectiveWindow);
-        response.cookies.set(WELLTECH_TRIAL_COOKIE_NAME, trialToken, trialCookieOptions(effectiveWindow.trialEnd));
-      } catch (error) {
-        console.error('[auth][welltech] No fue posible firmar wt_trial, se aplicara fallback de fecha fija.', error);
-      }
+    try {
+      const trialToken = await createWelltechTrialToken(effectiveWindow);
+      response.cookies.set(WELLTECH_TRIAL_COOKIE_NAME, trialToken, trialCookieOptions(effectiveWindow.trialEnd));
+    } catch (error) {
+      console.error('[auth][welltech] No fue posible firmar wt_trial, se aplicara fallback de fecha fija.', error);
     }
 
     clearWelltechFailures(key);

@@ -1,7 +1,12 @@
 import { NextResponse } from 'next/server';
 import { cookies, headers } from 'next/headers';
 
-import { getFallbackTrialWindow, isTrialExpired, resolveAuthContextFromReaders } from '@/lib/auth/server-auth';
+import {
+  applyWelltechTrialBonus,
+  getFallbackTrialWindow,
+  isTrialExpired,
+  resolveAuthContextFromReaders,
+} from '@/lib/auth/server-auth';
 import { readPersistedWelltechTrial } from '@/lib/auth/welltech-trial-store';
 
 export const runtime = 'nodejs';
@@ -41,7 +46,7 @@ export async function GET() {
     console.warn('[admin][welltech-trial] No fue posible leer estado persistido.', error);
   }
 
-  const trial = persisted ?? getFallbackTrialWindow();
+  const trial = applyWelltechTrialBonus(persisted ?? getFallbackTrialWindow());
   const expired = isTrialExpired(trial.trialEnd);
   const trialEndMs = parseIsoMs(trial.trialEnd) ?? Date.now();
   const remainingMs = Math.max(0, trialEndMs - Date.now());

@@ -66,7 +66,7 @@ Usuarios base en archivo [usuarios_base.txt](./usuarios_base.txt).
 
 - `superadmin`: acceso completo (dashboard + tasks + calculadora IVO)
 - `supervisor`: acceso dashboard + calculadora IVO
-- `welltech`: acceso dashboard + reportes usando solo `api.fluxcy.xyz` con `equipo_id=2` (trial 16 dias)
+- `welltech`: acceso dashboard + reportes usando solo `api.fluxcy.xyz` con `equipo_id=2` (trial 21 dias)
 
 ### Variables requeridas para WellTech
 
@@ -82,7 +82,7 @@ Configurar en `apps/web/.env` (server-side):
 
 - En el primer login exitoso de `welltech` se crea cookie firmada `wt_trial` (HttpOnly) con:
   - `trialStart` en timezone `America/Caracas`
-  - `trialEnd = trialStart + 16 dias`
+  - `trialEnd = trialStart + 21 dias`
 - Si `wt_trial` no existe, se evalua fallback fijo con `TRIAL_FALLBACK_START`.
 - Si el trial expira:
   - middleware bloquea rutas protegidas y redirige a `/login?expired=1`
