@@ -16,11 +16,13 @@ export type DilutionWindowMetrics = {
   wcData: number | null;
   wcSource: WaterCutSource;
   rhoLine15: number | null;
+  tempLineF: number | null;
   windowStartIso: string;
   windowEndIso: string;
   qmPoints: number;
   wcPoints: number;
   rhoPoints: number;
+  tempPoints: number;
 };
 
 type SamplePoint = {
@@ -32,6 +34,7 @@ const FALLBACK_WINDOW_MS = 15 * 60 * 1000;
 const QM_LIQ_KEYS = ['qm_liq'] as const;
 const WC_KEYS = ['wc', 'watercut', 'water_cut', 'bsw', 'h2o', 'agua_pct', 'bsw_lab'] as const;
 const RHO_LINE_KEYS = ['rho_line', 'densidad_linea', 'densidad', 'rho_liq'] as const;
+const TEMP_LIQ_KEYS = ['temp_liq', 'temp_liquido', 'temp_liq_f', 'temperatura_liquido_f', 'temperatura_liq'] as const;
 
 function toFiniteNumber(value: unknown): number | null {
   if (typeof value === 'number' && Number.isFinite(value)) {
@@ -405,6 +408,19 @@ export function useDilutionWindowMetrics(
       }
     }
 
+    const tempSamples = extractSeriesSamples(vpSeries, TEMP_LIQ_KEYS, windowStartMs, windowEndMs).filter(
+      (sample) => sample.tMs >= windowStartMs && sample.tMs <= windowEndMs,
+    );
+    let tempLineF = computeTimeWeightedAverage(tempSamples, windowStartMs, windowEndMs);
+
+    if (tempLineF === null) {
+      const snapshotTemp = data.snapshotQuery.data?.snapshot?.temp_liquido;
+      const parsedSnapshotTemp = toFiniteNumber(snapshotTemp);
+      if (parsedSnapshotTemp !== null) {
+        tempLineF = parsedSnapshotTemp;
+      }
+    }
+
     return {
       qtAvg,
       qtDelta,
@@ -412,11 +428,13 @@ export function useDilutionWindowMetrics(
       wcData,
       wcSource,
       rhoLine15,
+      tempLineF,
       windowStartIso: new Date(windowStartMs).toISOString(),
       windowEndIso: new Date(windowEndMs).toISOString(),
       qmPoints: qmInWindow.length,
       wcPoints,
       rhoPoints: rhoSamples.length,
+      tempPoints: tempSamples.length,
     };
   }, [
     appliedRange.from,
@@ -425,6 +443,7 @@ export function useDilutionWindowMetrics(
     data.flowQuery.data?.series,
     data.rhoQuery.data?.series,
     data.snapshotQuery.data?.snapshot?.densidad,
+    data.snapshotQuery.data?.snapshot?.temp_liquido,
     data.vpQuery.data?.series,
     qtMode,
   ]);

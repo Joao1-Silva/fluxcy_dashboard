@@ -24,7 +24,16 @@ type DilutionSetpointMassBalanceMonitorProps = {
 
 const FLOW_UNIT = 'Bls/d';
 const DEFAULT_RATIO_DIL = 0.3;
-const API_CORREGIDO_60F = 16;
+const API_REF_TEMP_F = 60;
+const DEFAULT_THERMAL_EXPANSION_PER_F = 0.00035;
+
+function apiToSpecificGravity(api: number) {
+  return 141.5 / (api + 131.5);
+}
+
+function specificGravityToApi(sg: number) {
+  return 141.5 / sg - 131.5;
+}
 
 function parseNumberInput(raw: string): number | null {
   const normalized = raw.trim().replace(',', '.');
@@ -154,52 +163,86 @@ export function DilutionSetpointMassBalanceMonitor({ data }: DilutionSetpointMas
   const diagnostics = useMemo(() => {
     const warnings: string[] = [];
     let rhoHcCorr: number | null = null;
-    let apiMixLine: number | null = null;
-    const apiMixCorr60F = API_CORREGIDO_60F;
+    let apiHcSecoAprox: number | null = null;
+    let apiLineaBase: number | null = null;
+    let apiMixCorr60F: number | null = null;
+    const lineApiSnapshot = data.snapshotQuery.data?.snapshot?.api;
 
     if (windowMetrics.rhoLine15 === null) {
-      warnings.push('rho_line no disponible en ventana (se omite API_mix_corr).');
-      return { warnings, rhoHcCorr, apiMixLine, apiMixCorr60F };
-    }
-
-    if (wcForCalculation === null) {
-      warnings.push('WC no disponible para diagnostico.');
-      return { warnings, rhoHcCorr, apiMixLine, apiMixCorr60F };
-    }
-
-    if (rhoWater === null || rhoWater <= 0) {
+      warnings.push('rho_line no disponible en ventana.');
+    } else if (wcForCalculation === null) {
+      warnings.push('WC no disponible para diagnostico de densidad.');
+    } else if (rhoWater === null || rhoWater <= 0) {
       warnings.push('rho_w debe ser numerico y > 0.');
-      return { warnings, rhoHcCorr, apiMixLine, apiMixCorr60F };
+    } else {
+      const denominator = 1 - wcForCalculation;
+      if (!(denominator > 0)) {
+        warnings.push('WC invalido para calcular rho_hc_corr.');
+      } else {
+        rhoHcCorr = (windowMetrics.rhoLine15 - wcForCalculation * rhoWater) / denominator;
+        if (!Number.isFinite(rhoHcCorr) || rhoHcCorr <= 0) {
+          warnings.push('rho_hc_corr fuera de rango fisico.');
+          rhoHcCorr = null;
+        } else {
+          apiHcSecoAprox = specificGravityToApi(rhoHcCorr);
+          if (!Number.isFinite(apiHcSecoAprox)) {
+            warnings.push('API_hc_seco_aprox invalido (NaN/Infinity).');
+            apiHcSecoAprox = null;
+          }
+        }
+      }
     }
 
-    const denominator = 1 - wcForCalculation;
-    if (!(denominator > 0)) {
-      warnings.push('WC invalido para calcular rho_hc_corr.');
-      return { warnings, rhoHcCorr, apiMixLine, apiMixCorr60F };
+    apiLineaBase =
+      typeof lineApiSnapshot === 'number' && Number.isFinite(lineApiSnapshot)
+        ? lineApiSnapshot
+        : apiHcSecoAprox;
+
+    if (apiLineaBase === null) {
+      warnings.push('API de linea no disponible para corregir a 60F.');
+      return { warnings, rhoHcCorr, apiHcSecoAprox, apiLineaBase, apiMixCorr60F };
     }
 
-    rhoHcCorr = (windowMetrics.rhoLine15 - wcForCalculation * rhoWater) / denominator;
-    if (!Number.isFinite(rhoHcCorr) || rhoHcCorr <= 0) {
-      warnings.push('rho_hc_corr fuera de rango fisico.');
-      return { warnings, rhoHcCorr: null, apiMixLine: null, apiMixCorr60F };
+    if (windowMetrics.tempLineF === null || !Number.isFinite(windowMetrics.tempLineF)) {
+      warnings.push('Temperatura de linea no disponible para correccion a 60F.');
+      return { warnings, rhoHcCorr, apiHcSecoAprox, apiLineaBase, apiMixCorr60F };
     }
 
-    apiMixLine = 141.5 / rhoHcCorr - 131.5;
-    if (!Number.isFinite(apiMixLine)) {
-      warnings.push('API_mix_linea invalido (NaN/Infinity).');
-      return { warnings, rhoHcCorr, apiMixLine: null, apiMixCorr60F };
+    const sgLinea = apiToSpecificGravity(apiLineaBase);
+    if (!Number.isFinite(sgLinea) || sgLinea <= 0) {
+      warnings.push('No se pudo convertir API de linea a gravedad especifica.');
+      return { warnings, rhoHcCorr, apiHcSecoAprox, apiLineaBase, apiMixCorr60F };
     }
 
-    if (apiMixLine < 0 || apiMixLine > 80) {
-      warnings.push('API_mix_linea fuera del rango tipico 0-80 API.');
+    const deltaTF = windowMetrics.tempLineF - API_REF_TEMP_F;
+    const sg60 = sgLinea * (1 + DEFAULT_THERMAL_EXPANSION_PER_F * deltaTF);
+    if (!Number.isFinite(sg60) || sg60 <= 0) {
+      warnings.push('Correccion de gravedad a 60F invalida.');
+      return { warnings, rhoHcCorr, apiHcSecoAprox, apiLineaBase, apiMixCorr60F };
     }
 
-    if (apiMixLine <= apiMixCorr60F) {
-      warnings.push('API de linea no supera el API corregido de referencia (16 API @ 60F).');
+    apiMixCorr60F = specificGravityToApi(sg60);
+    if (!Number.isFinite(apiMixCorr60F)) {
+      warnings.push('API_mix_corr_60F invalido (NaN/Infinity).');
+      return { warnings, rhoHcCorr, apiHcSecoAprox, apiLineaBase, apiMixCorr60F: null };
     }
 
-    return { warnings, rhoHcCorr, apiMixLine, apiMixCorr60F };
-  }, [rhoWater, wcForCalculation, windowMetrics.rhoLine15]);
+    if (windowMetrics.tempLineF > API_REF_TEMP_F && apiMixCorr60F >= apiLineaBase) {
+      warnings.push('Inconsistencia: con T linea > 60F, API corregido deberia ser menor al API de linea.');
+    }
+
+    if (windowMetrics.tempLineF < API_REF_TEMP_F && apiMixCorr60F <= apiLineaBase) {
+      warnings.push('Inconsistencia: con T linea < 60F, API corregido deberia ser mayor al API de linea.');
+    }
+
+    return { warnings, rhoHcCorr, apiHcSecoAprox, apiLineaBase, apiMixCorr60F };
+  }, [
+    data.snapshotQuery.data?.snapshot?.api,
+    rhoWater,
+    wcForCalculation,
+    windowMetrics.rhoLine15,
+    windowMetrics.tempLineF,
+  ]);
 
   const wcSourceLabel = useMemo(() => {
     if (useManualWc) {
@@ -375,15 +418,27 @@ export function DilutionSetpointMassBalanceMonitor({ data }: DilutionSetpointMas
                   />
                 </div>
                 <p>
-                  API_mix_linea aprox:{' '}
+                  API_linea (base):{' '}
                   <span className="font-semibold text-slate-100">
-                    {formatNumeric(diagnostics.apiMixLine, 2)} API
+                    {formatNumeric(diagnostics.apiLineaBase, 2)} API
+                  </span>
+                </p>
+                <p>
+                  Temp_linea_ventana:{' '}
+                  <span className="font-semibold text-slate-100">
+                    {formatNumeric(windowMetrics.tempLineF, 2)} F
                   </span>
                 </p>
                 <p>
                   API_mix_corr (60F):{' '}
                   <span className="font-semibold text-slate-100">
                     {formatNumeric(diagnostics.apiMixCorr60F, 2)} API
+                  </span>
+                </p>
+                <p>
+                  API_hc_seco_aprox (rho/WC):{' '}
+                  <span className="font-semibold text-slate-100">
+                    {formatNumeric(diagnostics.apiHcSecoAprox, 2)} API
                   </span>
                 </p>
                 <p>
@@ -399,6 +454,10 @@ export function DilutionSetpointMassBalanceMonitor({ data }: DilutionSetpointMas
                 <p>
                   Puntos rho_line:{' '}
                   <span className="font-semibold text-slate-100">{windowMetrics.rhoPoints}</span>
+                </p>
+                <p>
+                  Puntos temp_liq:{' '}
+                  <span className="font-semibold text-slate-100">{windowMetrics.tempPoints}</span>
                 </p>
               </div>
 
